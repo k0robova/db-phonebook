@@ -1,19 +1,19 @@
-import gravatar from "gravatar";
-import { UserModel } from "../db/models/userModels.js";
+import gravatar from 'gravatar';
+import { UserModel } from '../db/models/userModels.js';
 
-import HttpError from "../helpers/HttpError.js";
+import HttpError from '../helpers/HttpError.js';
 import {
   createUser,
   emailUnique,
   loginUser,
-} from "../services/usersServices.js";
+} from '../services/usersServices.js';
 
 export const signup = async (req, res, next) => {
   try {
     const { email } = req.body;
     const user = await emailUnique(email);
     if (user) {
-      throw HttpError(409, "Email in use");
+      throw HttpError(409, 'Email in use');
     }
     const avatar = gravatar.url(email);
 
@@ -36,11 +36,11 @@ export const login = async (req, res, next) => {
     const { email, password } = req.body;
     const user = await emailUnique(email);
     if (!user) {
-      throw HttpError(401, "User not found");
+      throw HttpError(401, 'User not found');
     }
     const isValidPassword = user.comparePassword(password);
     if (!isValidPassword) {
-      throw HttpError(401, "User not found");
+      throw HttpError(401, 'User not found');
     }
     const updatedUser = await loginUser(user);
     res.json({
@@ -54,4 +54,19 @@ export const login = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+export const logout = async (req, res, next) => {
+  const { _id } = req.user;
+  try {
+    await UserModel.findByIdAndUpdate(_id, { token: '' });
+    res.sendStatus(204);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const current = async (req, res) => {
+  const { name, email, avatar } = req.user;
+  res.json({ name, email, avatar });
 };

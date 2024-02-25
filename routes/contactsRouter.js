@@ -11,17 +11,24 @@ import {
   updateContactSchema,
 } from '../schemas/contactsSchemas.js';
 import { isValidId } from '../middlewares/isValidId.js';
+import { authenticate } from '../middlewares/authenticate.js';
 
 const contactsRouter = express.Router();
 
-contactsRouter.get('/', getAllContacts);
+contactsRouter.get('/', authenticate, getAllContacts);
 
-contactsRouter.delete('/:contactId', isValidId, deleteContact);
+contactsRouter.delete('/:contactId', authenticate, isValidId, deleteContact);
 
-contactsRouter.post('/', validateBody(createContactSchema), createContact);
+contactsRouter.post(
+  '/',
+  authenticate,
+  validateBody(createContactSchema),
+  createContact
+);
 
 contactsRouter.put(
   '/:contactId',
+  authenticate,
   isValidId,
   validateBody(updateContactSchema),
   updateContactController

@@ -1,11 +1,11 @@
 import { ContactModel } from '../db/models/contactModels.js';
 
-export const getAll = async () => {
-  const contacts = await ContactModel.find();
+export const getAll = async (owner) => {
+  const contacts = await ContactModel.find({ owner });
   return contacts;
 };
 
-export const addContact = async (data) => {
+export const addContact = async (owner, data) => {
   const exist = await ContactModel.findOne({ number: data.number });
 
   if (exist) {
@@ -14,18 +14,24 @@ export const addContact = async (data) => {
     };
   }
 
-  const contact = await ContactModel.create(data);
+  const contact = await ContactModel.create({ ...data, owner });
   return contact;
 };
 
-export const removeContact = async (contactId) => {
-  const contact = await ContactModel.findByIdAndDelete(contactId);
+export const removeContact = async (owner, contactId) => {
+  const contact = await ContactModel.findByIdAndDelete(contactId)
+    .where('owner')
+    .equals(owner);
   return contact;
 };
 
-export const updateContact = async (contactId, data) => {
-  const contact = await ContactModel.findByIdAndUpdate(contactId, data, {
-    new: true,
-  });
+export const updateContact = async (contactId, owner, data) => {
+  const contact = await ContactModel.findOneAndUpdate(
+    { _id: contactId, owner },
+    data,
+    {
+      new: true,
+    }
+  );
   return contact;
 };
