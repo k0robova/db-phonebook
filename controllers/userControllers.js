@@ -1,14 +1,19 @@
-import gravatar from 'gravatar';
+import gravatar from "gravatar";
+import { UserModel } from "../db/models/userModels.js";
 
-import HttpError from '../helpers/HttpError.js';
-import { createUser, emailUnique } from '../services/usersServices.js';
+import HttpError from "../helpers/HttpError.js";
+import {
+  createUser,
+  emailUnique,
+  loginUser,
+} from "../services/usersServices.js";
 
 export const signup = async (req, res, next) => {
   try {
     const { email } = req.body;
     const user = await emailUnique(email);
     if (user) {
-      throw HttpError(409, 'Email in use');
+      throw HttpError(409, "Email in use");
     }
     const avatar = gravatar.url(email);
 
@@ -19,6 +24,31 @@ export const signup = async (req, res, next) => {
         name: newUser.name,
         email: newUser.email,
         avatar: newUser.avatar,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const user = await emailUnique(email);
+    if (!user) {
+      throw HttpError(401, "User not found");
+    }
+    const isValidPassword = user.comparePassword(password);
+    if (!isValidPassword) {
+      throw HttpError(401, "User not found");
+    }
+    const updatedUser = await loginUser(user);
+    res.json({
+      token: updatedUser.token,
+      user: {
+        name: updatedUser.name,
+        email: updatedUser.email,
+        avatar: updatedUser.avatar,
       },
     });
   } catch (error) {

@@ -1,6 +1,6 @@
-import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
-import { UserModel } from '../db/models/userModels.js';
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+import { UserModel } from "../db/models/userModels.js";
 
 dotenv.config();
 
@@ -29,4 +29,19 @@ export const createUser = async (userData) => {
     { new: true }
   );
   return newUser;
+};
+
+export const loginUser = async (user) => {
+  const payload = {
+    id: user._id,
+  };
+
+  const token = jwt.sign(payload, SECRET_KEY);
+
+  const updatedUser = await UserModel.findByIdAndUpdate(
+    user._id,
+    { token },
+    { new: true }
+  );
+  return updatedUser;
 };
